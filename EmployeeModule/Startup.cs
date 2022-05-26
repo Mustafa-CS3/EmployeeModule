@@ -1,6 +1,8 @@
 using EmployeeModule.Configuration;
 using EmployeeModule.DbContext;
 using EmployeeModule.IdentityAuth;
+using EmployeeModule.IRepository;
+using EmployeeModule.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -36,11 +38,45 @@ namespace EmployeeModule
 
             services.AddControllers();
             services.AddDbContext<AppDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Conn")));
+            services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
             services.Configure<JwtConfig>(Configuration.GetSection("JwtConfig"));
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "EmployeeModule", Version = "v1" });
+
+                // To Enable authorization using Swagger (JWT)
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header
+                   
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                    new OpenApiSecurityScheme
+                        {
+                        Reference = new OpenApiReference
+                        {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                        }
+                        },
+                    new string[] {}
+
+                    }
+                });
+        
             });
+
+   
+
+
+
+
             // For Identity
             services.AddIdentity<AppUser, IdentityRole>()
             .AddEntityFrameworkStores<AppDbContext>()
@@ -82,9 +118,9 @@ namespace EmployeeModule
             }
 
             app.UseRouting();
-
-            app.UseAuthorization();
             app.UseAuthentication();
+            app.UseAuthorization();
+            
 
             app.UseEndpoints(endpoints =>
             {

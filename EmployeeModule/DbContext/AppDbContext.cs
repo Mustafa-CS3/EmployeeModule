@@ -1,4 +1,5 @@
 ﻿using EmployeeModule.IdentityAuth;
+using EmployeeModule.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -16,10 +17,11 @@ namespace EmployeeModule.DbContext
 
         }
 
-
         protected override void OnModelCreating(ModelBuilder bd)
         {
             base.OnModelCreating(bd);
         }
+
+        public DbSet<Employee> Employee { get; set; }
     }
 }

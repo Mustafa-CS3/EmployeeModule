@@ -44,7 +44,7 @@ namespace EmployeeModule.Controllers
             if (!result.Succeeded)
                 return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User creation failed! Check your input" });
 
-            return Ok(new Response { Status = "Success", Code = "200", Message = "User created successfully!" });
+            return Ok(new Response { Success = true, Status = "200", Message = "User created successfully!" });
         }
 
         [HttpPost]
