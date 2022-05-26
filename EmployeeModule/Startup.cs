@@ -6,6 +6,7 @@ using EmployeeModule.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 
 namespace EmployeeModule
 {
@@ -36,7 +38,7 @@ namespace EmployeeModule
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddControllers();
+            services.AddControllers().AddNewtonsoftJson();
             services.AddDbContext<AppDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Conn")));
             services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
             services.Configure<JwtConfig>(Configuration.GetSection("JwtConfig"));
@@ -69,12 +71,12 @@ namespace EmployeeModule
 
                     }
                 });
+
+
         
             });
 
-   
-
-
+         
 
 
             // For Identity
@@ -88,6 +90,7 @@ namespace EmployeeModule
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+
             })
 
             // Adding Jwt Bearer
@@ -103,6 +106,19 @@ namespace EmployeeModule
                     ValidateAudience = false,
                     RequireExpirationTime = false,
                     ValidateLifetime = true
+                };
+                jwt.Events = new JwtBearerEvents
+                {
+                    OnChallenge = async context =>
+                    {
+                        // Call this to skip the default logic and avoid using the default response
+                        context.HandleResponse();
+
+                        // Write to the response in any way you wish
+                        context.Response.StatusCode = 401;
+                        context.Response.Headers.Append("my-custom-header", "custom-value");
+                        await context.Response.WriteAsync("You are not authorized for this request!");
+                    }
                 };
             });
         }
